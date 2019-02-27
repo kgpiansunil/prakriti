@@ -12,9 +12,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.neighbors import KNeighborsClassifier
-from subprocess import check_output
 import os
-#import seaborn as sns
+import xgboost as xgb
+import seaborn as sns
 
 train=pd.read_csv(os.getcwd()+'/prakriti_doc/trainingset.csv')
 test=pd.read_csv(os.getcwd()+'/prakriti_doc/testset.csv')
@@ -24,12 +24,12 @@ list(train.columns.values)
 index=test['index']
 y=train['forest_cover_type']
 
-train.describe()
+described = train.describe()
 train.isnull().sum()
 
-sns.countplot(data=train,x=train['Cover_Type'])
-sns.boxplot(x="Cover_Type", y="Elevation", data=train)
-sns.boxplot(x="Cover_Type", y="Aspect",data=train)
+sns.countplot(data=train,x=train['forest_cover_type'])
+sns.boxplot(x="forest_cover_type", y="Elevation", data=train)
+sns.boxplot(x="forest_cover_type", y="Aspect",data=train)
 
 train=train.drop(['index','forest_cover_type'],1)
 test=test.drop(['index'],1)
@@ -55,3 +55,39 @@ output.head()
 
 output.to_csv("output.csv",index=False)
 
+
+#--------------------ML Part Begins Here-------------#
+
+#xgb_classifier = xgb.XGBClassifier(missing=np.nan, max_depth=7, n_estimators= 350, learning_rate =0.03, nthread=4, subsample = 0.95, colsample_bytree = 0.85, seed =4242)
+#Parameter tuning
+xgb_classifier = xgb.XGBClassifier(max_depth=15, n_estimators=100, learning_rate=0.03)
+xgb_classifier.fit(x_train, y_train)
+
+
+#xgb_classifier.fit(X_train, y_train)
+y_pred_X_test = xgb_classifier.predict(x_test)
+
+# Making the Confusion Matrix
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred_X_test)
+
+
+#Cross validation
+from sklearn.model_selection import cross_val_score
+accuracies = cross_val_score(estimator=xgb_classifier, X = x_train, y = y_train, cv =10)
+print(accuracies.mean())
+print(accuracies.std())
+
+
+#GridSearch
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+rf_para = [{'n_estimators':[50, 100], 'max_depth':[5,10,15], 'max_features':[0.1, 0.3], \
+           'min_samples_leaf':[1,3], 'bootstrap':[True, False]}]
+rfc = GridSearchCV(RandomForestClassifier(), param_grid=rf_para, cv = 10, n_jobs=-1)
+rfc.fit(x_train, y_train)
+rfc.best_params_
+
+print ('Best accuracy obtained: {}'.format(rfc.best_score_))
+print ('Parameters:')
+for key, value in rfc.best_params_.items():
+    print('\t{}:{}'.format(key,value))
