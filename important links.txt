@@ -1,0 +1,9 @@
+https://www.slideshare.net/akrish/forest-cover-type-prediction
+
+https://shankarmsy.github.io/posts/forest-cover-types.html
+
+https://www.kaggle.com/nitin007/forest-cover-type-prediction-complete-part-i?fbclid=IwAR14JVUFkgXEC-nbv0e4j5R49T6lS8ZS6fv5gBwjzjNXLD39w03W40Wv_uw
+
+https://www.kaggle.com/nitin007/forest-cover-type-prediction-complete-part-ii?fbclid=IwAR3XthPUx72aOO38nxiWabqP_RGGOj_b3CJ4UR8mPY4vd7P9kl4Y58dVIpc
+
+https://www.kaggle.com/c/forest-cover-type-prediction/kernels
