@@ -15,14 +15,14 @@ from sklearn.neighbors import KNeighborsClassifier
 import os
 import xgboost as xgb
 import seaborn as sns
+from xgboost.sklearn import XGBClassifier
+
 
 
 train=pd.read_csv(os.getcwd()+'/prakriti_doc/trainingset.csv')
 test=pd.read_csv(os.getcwd()+'/prakriti_doc/testset.csv')
 
-
 list(train.columns.values)
-
 
 index=test['index']
 y=train['forest_cover_type']
@@ -86,6 +86,8 @@ print(accuracies.std())
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 rf_para = [{'n_estimators':[50, 100], 'max_depth':[5,10,15], 'max_features':[0.1, 0.3], \
            'min_samples_leaf':[1,3], 'bootstrap':[True, False]}]
+
+
 rfc = GridSearchCV(RandomForestClassifier(), param_grid=rf_para, cv = 10, n_jobs=-1)
 rfc.fit(x_train, y_train)
 rfc.best_params_
@@ -95,8 +97,14 @@ for key, value in rfc.best_params_.items():
     print('\t{}:{}'.format(key,value))
     
 
+eval_set = [(x_test, y_test)]
+XGBC = XGBClassifier(silent=1,n_estimators=641,learning_rate=0.2,max_depth=10,gamma=0.5,nthread=-1,\
+                    reg_alpha = 0.05, reg_lambda= 0.35, max_delta_step = 1, subsample = 0.83, colsample_bytree = 0.6)
 
 
+XGBC.fit(x_train, y_train, eval_set=eval_set, eval_metric='merror', verbose=True)
+
+pred = XGBC.predict(x_test_data)
 
 
 #----------------------Output-------------------

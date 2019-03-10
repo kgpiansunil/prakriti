@@ -16,17 +16,45 @@ from sklearn.neighbors import KNeighborsClassifier
 import os
 import xgboost as xgb
 import seaborn as sns
+from xgboost.sklearn import XGBClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV
+from scipy.stats import randint, uniform
 
 
 train=pd.read_csv(os.getcwd()+'/prakriti_doc/trainingset.csv')
 test=pd.read_csv(os.getcwd()+'/prakriti_doc/testset.csv')
 
-from xgboost.sklearn import XGBClassifier
-from sklearn.metrics import accuracy_score
-from sklearn.cross_validation import StratifiedKFold
-from scipy.stats import randint, uniform
+df_train1 = train
+df_test1 = test
+df_train1['Horizontal_Distance_To_Hydrology'] = np.sqrt(df_train1['Horizontal_Distance_To_Hydrology'])
+df_train1['Horizontal_Distance_To_Roadways'] = np.sqrt(df_train1['Horizontal_Distance_To_Roadways'])
+df_train1['Hillshade_Noon'] = np.sqrt(df_train1['Hillshade_Noon'])
+df_test1[['Horizontal_Distance_To_Hydrology','Horizontal_Distance_To_Roadways', 'Hillshade_Noon']] = np.sqrt(df_test1[['Horizontal_Distance_To_Hydrology','Horizontal_Distance_To_Roadways','Hillshade_Noon']])
 
-cv = StratifiedKFold(y_train, n_folds=10, shuffle=True)
+
+#Create two new columns named Slope hydrology and Slope hydrology percent and remove any infinite values that may result 
+df_train1['slope_hyd'] = np.sqrt(df_train1.Vertical_Distance_To_Hydrology**2 + \
+        df_train1.Horizontal_Distance_To_Hydrology**2) 
+df_train1.slope_hyd=df_train1.slope_hyd.map(lambda x: 0 if np.isinf(x) else x) 
+
+#Elevation adjusted by Horizontal distance to Hyrdrology
+df_train1['Elev_to_HD_Hyd']=df_train1.Elevation - 0.2 * df_train1.Horizontal_Distance_To_Hydrology
+df_train1['Elev_to_HD_Road']=df_train1.Elevation - 0.05 * df_train1.Horizontal_Distance_To_Roadways
+df_train1['Elev_to_VD_Hyd']=df_train1.Elevation - 0.05 * df_train1.Vertical_Distance_To_Hydrology
+
+
+df_train1['Mean_Amenities']=(df_train1.Horizontal_Distance_To_Hydrology + df_train1.Horizontal_Distance_To_Roadways) / 2
+
+
+cols=df_train1.columns.tolist()
+cols=cols[1:11]+cols[12:17]+cols[11:12] 
+df_train1=df_train1[cols] 
+
+X_train = df_train1.iloc[:, :-1]
+y_train = df_train1.iloc[:, -1:]
+
+cv = StratifiedKFold(shuffle=True, n_splits=10)
 
 params_dist_grid = {
     'max_depth': [1, 5, 10],

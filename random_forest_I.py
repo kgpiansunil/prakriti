@@ -125,6 +125,3 @@ res = stats.probplot(df_train1['Hillshade_Noon'],plot=plt)
 df_test1 = df_test
 df_test1[['Horizontal_Distance_To_Hydrology','Horizontal_Distance_To_Roadways', 'Hillshade_Noon']] = np.sqrt(df_test1[['Horizontal_Distance_To_Hydrology','Horizontal_Distance_To_Roadways',,'Hillshade_Noon']])
 
-from sklearn.preprocessing import StandardScaler
-
-
